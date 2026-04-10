@@ -1,4 +1,4 @@
-// Banned usernames list
+
 const bannedNames = [
     'hitler', 'epstien', 'epstein', 'diddy', 'rape', 'raped', 'rapist',
     'nazi', 'fuckhitler', 'heilhitler', 'adolf', 'pedo', 'pedophile'
