@@ -14,6 +14,7 @@
         
         body {
             font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
         
         @keyframes pulse {
@@ -31,16 +32,16 @@
             50% { text-shadow: 0 0 40px #ff6600, 0 0 60px #ff8800; }
         }
         
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        
         .star {
             position: absolute;
             background: white;
             border-radius: 50%;
             animation: twinkle 2s infinite;
-        }
-        
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
         }
         
         .clip-card {
@@ -54,33 +55,55 @@
         button, input, textarea {
             font-family: 'Inter', sans-serif;
         }
+        
+        button:hover {
+            opacity: 0.9;
+            cursor: pointer;
+        }
+        
+        .pfp-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ff6644;
+        }
+        
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
 
-<!-- LOADING SCREEN -->
 <div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, #0a0a2a 0%, #000000 100%); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 1s;">
     
     <div style="position: relative; width: 300px; height: 300px; margin-bottom: 50px;">
-        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, #000000 0%, #1a0033 40%, #330066 70%, #000000 100%); box-shadow: 0 0 50px rgba(0,0,0,0.8); animation: pulse 2s infinite;"></div>
+        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, #000000 0%, #1a0033 40%, #330066 70%, #000000 100%); box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 50px rgba(255,255,255,0.1); animation: pulse 2s infinite;"></div>
         <div style="position: absolute; width: 80%; height: 80%; top: 10%; left: 10%; border-radius: 50%; background: radial-gradient(circle, #ff6600 0%, #ff3300 50%, #000000 100%); opacity: 0.6; animation: spin 4s linear infinite;"></div>
         <div style="position: absolute; width: 40%; height: 40%; top: 30%; left: 30%; border-radius: 50%; background: #000; box-shadow: 0 0 30px #ff4400;"></div>
     </div>
     
     <h1 style="color: white; font-size: 70px; font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: 5px; text-shadow: 0 0 20px #ff4400, 0 0 40px #ff6600; animation: glow 1.5s infinite;">MACCLIPS</h1>
     
-    <p style="color: #ccc; font-size: 18px; text-align: center; max-width: 600px; margin-top: 20px;">The best website to share clips. Got a sus moment? Share it, got a funny clip? Share it. An international world wide pre-server full website.</p>
+    <p style="color: #ccc; font-size: 18px; text-align: center; max-width: 600px; margin-top: 20px; padding: 0 20px;">The best website to share clips. Got a sus moment? Share it, got a funny clip? Share it. An international world wide pre-server full website.</p>
     
     <div id="starsContainer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
     
     <div style="width: 280px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 50px; overflow: hidden;">
-        <div id="loadingBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff4400, #ff8800); border-radius: 2px;"></div>
+        <div id="loadingBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff4400, #ff8800); border-radius: 2px; transition: width 0.1s linear;"></div>
     </div>
-    <p id="loadingPercent" style="color: #ff8844; margin-top: 10px;">0%</p>
+    <p id="loadingPercent" style="color: #ff8844; margin-top: 10px; font-family: monospace; font-size: 14px;">0%</p>
+    <p style="color: #666; margin-top: 10px; font-size: 12px;">Loading the universe...</p>
 </div>
 
-<!-- MAIN CONTENT -->
 <div id="mainContent" style="display: none;">
+    
     <nav style="background: rgba(10, 10, 42, 0.95); backdrop-filter: blur(10px); padding: 15px 30px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255, 68, 0, 0.3);">
         <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; gap: 15px;">
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -104,32 +127,56 @@
     
     <div id="upload" class="section" style="display: none; max-width: 600px; margin: 40px auto; padding: 30px; background: rgba(255,255,255,0.05); border-radius: 16px; backdrop-filter: blur(10px);">
         <h2 style="color: white; margin-bottom: 20px;">📤 Upload a Clip</h2>
+        <p style="color: #ccc; margin-bottom: 20px;">Share your clip (SFW images only)</p>
+        
         <input type="text" id="clipTitle" placeholder="Clip Title" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;">
-        <textarea id="clipContent" placeholder="Your clip text here..." rows="5" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;"></textarea>
+        
+        <textarea id="clipContent" placeholder="Your clip text or link here..." rows="5" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;"></textarea>
+        
         <input type="file" id="clipImage" accept="image/*" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;">
+        
         <button onclick="uploadClip()" style="width: 100%; padding: 12px; background: linear-gradient(90deg, #ff4400, #ff6600); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">Post Clip</button>
     </div>
     
-    <div id="account" class="section" style="display: none; max-width: 500px; margin: 40px auto; padding: 30px; background: rgba(255,255,255,0.05); border-radius: 16px; backdrop-filter: blur(10px);">
-        <h2 style="color: white; margin-bottom: 20px;">👤 Create Account</h2>
+    <div id="account" class="section" style="display: none; max-width: 600px; margin: 40px auto; padding: 30px; background: rgba(255,255,255,0.05); border-radius: 16px; backdrop-filter: blur(10px);">
+        <h2 style="color: white; margin-bottom: 20px;">👤 Account</h2>
+        
         <div id="loginForm">
             <input type="email" id="loginEmail" placeholder="Email" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;">
             <input type="text" id="loginUsername" placeholder="Username (3-20 characters)" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;">
             <input type="password" id="loginPassword" placeholder="Password" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;">
             <button onclick="signUp()" style="width: 100%; padding: 12px; background: linear-gradient(90deg, #ff4400, #ff6600); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">Sign Up / Login</button>
         </div>
-        <div id="userInfo" style="display: none; text-align: center;">
-            <p style="color: #4caf50;">✅ Logged in as: <span id="currentUsername"></span></p>
-            <button onclick="logout()" style="margin-top: 10px; padding: 8px 20px; background: #ff4444; border: none; border-radius: 8px; color: white; cursor: pointer;">Logout</button>
+        
+        <div id="userInfo" style="display: none;">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <img id="profilePfp" class="pfp-preview" src="https://i.pravatar.cc/150?img=7" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #ff6644; margin-bottom: 10px;">
+                <h3 id="displayName" style="color: white;"></h3>
+                <p id="displaySurname" style="color: #ff8844;"></p>
+                <p style="color: #4caf50; margin-top: 5px;">✅ Logged in</p>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; margin-top: 20px;">
+                <h3 style="color: white; margin-bottom: 15px;">✏️ Edit Profile</h3>
+                
+                <label style="color: #ccc; display: block; margin-bottom: 5px;">Profile Picture</label>
+                <input type="file" id="pfpUpload" accept="image/*" style="width: 100%; padding: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;">
+                
+                <label style="color: #ccc; display: block; margin-bottom: 5px;">Surname (Last Name)</label>
+                <input type="text" id="editSurname" placeholder="Enter your surname" style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.5); border: 1px solid #ff6644; border-radius: 8px; color: white;">
+                
+                <button onclick="updateProfile()" style="width: 100%; padding: 12px; background: linear-gradient(90deg, #44ff66, #00cc44); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; margin-bottom: 10px;">💾 Save Profile Changes</button>
+                
+                <button onclick="logout()" style="width: 100%; padding: 12px; background: #ff4444; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">🚪 Logout</button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-// Create stars
 const starsContainer = document.getElementById('starsContainer');
 if (starsContainer) {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 150; i++) {
         const star = document.createElement('div');
         star.className = 'star';
         star.style.left = Math.random() * 100 + '%';
@@ -141,7 +188,6 @@ if (starsContainer) {
     }
 }
 
-// Loading progress
 let progress = 0;
 const loadingInterval = setInterval(() => {
     progress += Math.random() * 4 + 2;
@@ -153,8 +199,12 @@ const loadingInterval = setInterval(() => {
             loadingScreen.style.opacity = '0';
             setTimeout(() => {
                 loadingScreen.style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
+                const mainContent = document.getElementById('mainContent');
+                if (mainContent) {
+                    mainContent.style.display = 'block';
+                }
                 renderClips();
+                loadUserProfile();
             }, 1000);
         }
     }
@@ -162,37 +212,114 @@ const loadingInterval = setInterval(() => {
     const loadingPercent = document.getElementById('loadingPercent');
     if (loadingBar) loadingBar.style.width = progress + '%';
     if (loadingPercent) loadingPercent.innerText = Math.floor(progress) + '%';
-}, 250);
+}, Math.random() * 250 + 200);
 
-// Data
 let currentUser = localStorage.getItem('macclips_user') || null;
 let clips = JSON.parse(localStorage.getItem('macclips_clips')) || [];
+let userProfiles = JSON.parse(localStorage.getItem('macclips_profiles')) || {};
 
-const bannedNames = ['hitler', 'epstien', 'epstein', 'diddy', 'rape', 'raped', 'rapist', 'nazi', 'adolf', 'pedo'];
+const bannedNames = ['hitler', 'epstien', 'epstein', 'diddy', 'rape', 'raped', 'rapist', 'nazi', 'adolf', 'pedo', 'pedophile'];
 
 function containsBannedName(username) {
     return bannedNames.some(banned => username.toLowerCase().includes(banned));
 }
 
+function loadUserProfile() {
+    if (!currentUser) return;
+    
+    const profile = userProfiles[currentUser] || { surname: '', pfp: null };
+    const displayNameElem = document.getElementById('displayName');
+    const displaySurnameElem = document.getElementById('displaySurname');
+    const profilePfpElem = document.getElementById('profilePfp');
+    const editSurnameElem = document.getElementById('editSurname');
+    
+    if (displayNameElem) displayNameElem.innerText = currentUser;
+    if (displaySurnameElem) displaySurnameElem.innerText = profile.surname || 'No surname set';
+    if (editSurnameElem) editSurnameElem.value = profile.surname || '';
+    
+    if (profile.pfp) {
+        if (profilePfpElem) profilePfpElem.src = profile.pfp;
+    } else {
+        const defaultId = (currentUser.length % 70) + 1;
+        if (profilePfpElem) profilePfpElem.src = `https://i.pravatar.cc/150?img=${defaultId}`;
+    }
+}
+
+function updateProfile() {
+    if (!currentUser) {
+        alert('Please login first!');
+        return;
+    }
+    
+    const surname = document.getElementById('editSurname').value.trim();
+    const pfpFile = document.getElementById('pfpUpload').files[0];
+    
+    if (!userProfiles[currentUser]) {
+        userProfiles[currentUser] = {};
+    }
+    
+    if (surname) {
+        userProfiles[currentUser].surname = surname;
+    }
+    
+    if (pfpFile) {
+        if (!pfpFile.type.startsWith('image/')) {
+            alert('Please select an image file!');
+            return;
+        }
+        if (pfpFile.size > 2 * 1024 * 1024) {
+            alert('Image too large! Max 2MB.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            userProfiles[currentUser].pfp = e.target.result;
+            localStorage.setItem('macclips_profiles', JSON.stringify(userProfiles));
+            loadUserProfile();
+            renderClips();
+            alert('Profile updated successfully!');
+        };
+        reader.readAsDataURL(pfpFile);
+    } else {
+        localStorage.setItem('macclips_profiles', JSON.stringify(userProfiles));
+        loadUserProfile();
+        renderClips();
+        alert('Profile updated successfully!');
+    }
+}
+
 if (clips.length === 0) {
     clips = [
-        {id: Date.now(), username: '🤖 Server Bot', title: 'Welcome to MacClips! 🎉', content: 'Create an account and start posting!', image: null, timestamp: new Date().toISOString(), isBot: true},
-        {id: Date.now() + 1, username: '🤖 Server Bot', title: 'How to Use', content: '1. Sign up\n2. Upload clips\n3. Share with the world!', image: null, timestamp: new Date().toISOString(), isBot: true}
+        {id: Date.now(), username: '🤖 Server Bot', title: 'Welcome to MacClips! 🎉', content: 'Create an account and start posting clips! Share your funny moments, sus clips, and more!', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null},
+        {id: Date.now() + 1, username: '🤖 Server Bot', title: 'How to Post', content: '1. Click Account and Sign Up\n2. Go to Upload\n3. Share your clip!\n4. View on Main Page', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null},
+        {id: Date.now() + 2, username: '🤖 Server Bot', title: 'Customize Your Profile!', content: 'Go to Account → Edit Profile to add your surname and profile picture!', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null}
     ];
     localStorage.setItem('macclips_clips', JSON.stringify(clips));
 }
 
-const botPosts = ['🎮 Check out this gaming clip!', '🔥 This is going viral!', '😱 Insane moment caught on camera!', '🎵 Best music clip of the day!', '🐱 Cute animal clip!'];
+const botPosts = [
+    "🎮 Check out this insane gameplay clip from TikTok! #gaming",
+    "🔥 This YouTube clip is going viral right now!",
+    "😱 Can't believe what happened in this Twitch stream!",
+    "🎵 Best music moment caught on camera from TikTok!",
+    "🐱 Cute animal clip of the day! 🥰",
+    "🤣 This funny moment will make your day!",
+    "⚡ Epic fail compilation from YouTube!",
+    "💪 Most satisfying clip you'll watch today!"
+];
 
 function addBotClip() {
+    const randomPost = botPosts[Math.floor(Math.random() * botPosts.length)];
     const newClip = {
         id: Date.now(),
         username: '🤖 Server Bot',
-        title: 'Auto-Fetched Clip',
-        content: botPosts[Math.floor(Math.random() * botPosts.length)],
+        title: '🎥 Auto-Fetched Clip',
+        content: randomPost,
         image: null,
         timestamp: new Date().toISOString(),
-        isBot: true
+        isBot: true,
+        surname: '',
+        pfp: null
     };
     clips.unshift(newClip);
     if (clips.length > 50) clips = clips.slice(0, 50);
@@ -213,24 +340,36 @@ function signUp() {
     }
     
     if (username.length < 3 || username.length > 20) {
-        alert('Username must be 3-20 characters');
+        alert('Username must be between 3 and 20 characters');
         return;
     }
     
     if (containsBannedName(username)) {
-        alert('❌ PERMANENT BAN: This username contains forbidden words.');
+        alert('❌ PERMANENT BAN: This username contains forbidden words. You are permanently banned from MacClips.');
         localStorage.setItem('macclips_banned', username);
+        return;
+    }
+    
+    if (localStorage.getItem('macclips_banned')) {
+        alert('You are permanently banned from MacClips.');
         return;
     }
     
     currentUser = username;
     localStorage.setItem('macclips_user', username);
     
+    if (!userProfiles[currentUser]) {
+        userProfiles[currentUser] = { surname: '', pfp: null };
+        localStorage.setItem('macclips_profiles', JSON.stringify(userProfiles));
+    }
+    
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('userInfo').style.display = 'block';
-    document.getElementById('currentUsername').innerText = username;
-    alert('Welcome ' + username + '!');
+    
+    loadUserProfile();
+    alert('Welcome to MacClips, ' + username + '!');
     showSection('mainpage');
+    renderClips();
 }
 
 function logout() {
@@ -238,39 +377,82 @@ function logout() {
     localStorage.removeItem('macclips_user');
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('userInfo').style.display = 'none';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    alert('Logged out successfully!');
 }
 
 function uploadClip() {
     if (!currentUser) {
-        alert('Create an account first!');
+        alert('Please create an account first!');
         showSection('account');
         return;
     }
     
-    const title = document.getElementById('clipTitle').value;
-    const content = document.getElementById('clipContent').value;
-    
-    if (!title || !content) {
-        alert('Please add title and content');
+    if (localStorage.getItem('macclips_banned')) {
+        alert('You are banned from uploading.');
         return;
     }
     
+    const title = document.getElementById('clipTitle').value.trim();
+    const content = document.getElementById('clipContent').value.trim();
+    const imageFile = document.getElementById('clipImage').files[0];
+    
+    if (!title || !content) {
+        alert('Please add a title and content!');
+        return;
+    }
+    
+    const harmfulWords = ['kill', 'murder', 'suicide', 'gore', 'blood', 'corpse'];
+    const lowerContent = content.toLowerCase();
+    if (harmfulWords.some(word => lowerContent.includes(word))) {
+        alert('❌ This clip contains harmful content and cannot be posted.');
+        return;
+    }
+    
+    if (imageFile) {
+        if (!imageFile.type.startsWith('image/')) {
+            alert('Only image files are allowed!');
+            return;
+        }
+        if (imageFile.size > 5 * 1024 * 1024) {
+                        alert('Image too large! Max 5MB.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            saveClip(title, content, e.target.result);
+        };
+        reader.readAsDataURL(imageFile);
+    } else {
+        saveClip(title, content, null);
+    }
+}
+
+function saveClip(title, content, imageData) {
+    const profile = userProfiles[currentUser] || { surname: '', pfp: null };
     const newClip = {
         id: Date.now(),
         username: currentUser,
+        surname: profile.surname || '',
+        pfp: profile.pfp || null,
         title: title,
         content: content,
-        image: null,
+        image: imageData,
         timestamp: new Date().toISOString(),
         isBot: false
     };
     
     clips.unshift(newClip);
+    if (clips.length > 50) clips = clips.slice(0, 50);
     localStorage.setItem('macclips_clips', JSON.stringify(clips));
     
     document.getElementById('clipTitle').value = '';
     document.getElementById('clipContent').value = '';
-    alert('Clip posted!');
+    document.getElementById('clipImage').value = '';
+    
+    alert('✅ Clip posted successfully!');
     showSection('mainpage');
     renderClips();
 }
@@ -282,42 +464,76 @@ function renderClips() {
     clips = JSON.parse(localStorage.getItem('macclips_clips')) || [];
     
     if (clips.length === 0) {
-        container.innerHTML = '<p style="color: white; text-align: center;">No clips yet. Be the first to post!</p>';
+        container.innerHTML = '<div style="background: rgba(20,20,50,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 40px; text-align: center;"><p style="color: white;">No clips yet. Be the first to post!</p></div>';
         return;
     }
     
-    container.innerHTML = clips.map(clip => `
-        <div style="background: rgba(20,20,50,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; border-left: 4px solid #ff6644;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <div style="color: #ff8844; font-weight: bold;">${clip.isBot ? '🤖 ' : '👤 '}${escapeHtml(clip.username)}</div>
-                <div style="color: #666; font-size: 12px;">${new Date(clip.timestamp).toLocaleString()}</div>
+    container.innerHTML = clips.map(clip => {
+        let pfpUrl = '';
+        if (clip.isBot) {
+            pfpUrl = 'https://i.pravatar.cc/150?img=10';
+        } else if (clip.pfp) {
+            pfpUrl = clip.pfp;
+        } else {
+            const defaultId = (clip.username.length % 70) + 1;
+            pfpUrl = `https://i.pravatar.cc/150?img=${defaultId}`;
+        }
+        
+        const displaySurname = clip.surname ? ` @${clip.surname}` : '';
+        
+        return `
+        <div class="clip-card" style="background: rgba(20,20,50,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; border-left: 4px solid #ff6644;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <img src="${pfpUrl}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #ff6644;">
+                <div>
+                    <div style="color: #ff8844; font-weight: bold;">${clip.isBot ? '🤖 ' : ''}${escapeHtml(clip.username)}${displaySurname}</div>
+                    <div style="color: #666; font-size: 11px;">${new Date(clip.timestamp).toLocaleString()}</div>
+                </div>
             </div>
             <div style="color: white; font-size: 18px; font-weight: 600; margin: 10px 0;">${escapeHtml(clip.title)}</div>
-            <div style="color: #ccc;">${escapeHtml(clip.content)}</div>
+            <div style="color: #ccc; margin: 10px 0; white-space: pre-wrap;">${escapeHtml(clip.content)}</div>
+            ${clip.image ? `<img src="${clip.image}" style="max-width: 100%; border-radius: 8px; margin-top: 10px; max-height: 400px; object-fit: contain;" alt="Clip image">` : ''}
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
 function showSection(sectionId) {
-    document.querySelectorAll('.section').forEach(section => {
+    const sections = document.querySelectorAll('.section');
+    sections.forEach(section => {
         section.style.display = 'none';
     });
-    document.getElementById(sectionId).style.display = 'block';
-    if (sectionId === 'mainpage') renderClips();
+    const selectedSection = document.getElementById(sectionId);
+    if (selectedSection) {
+        selectedSection.style.display = 'block';
+    }
+    if (sectionId === 'mainpage') {
+        renderClips();
+    }
+    if (sectionId === 'account' && currentUser) {
+        loadUserProfile();
+    }
 }
 
 window.onload = function() {
     if (currentUser && !localStorage.getItem('macclips_banned')) {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('userInfo').style.display = 'block';
-        document.getElementById('currentUsername').innerText = currentUser;
+        const loginForm = document.getElementById('loginForm');
+        const userInfo = document.getElementById('userInfo');
+        if (loginForm) loginForm.style.display = 'none';
+        if (userInfo) userInfo.style.display = 'block';
+        loadUserProfile();
     }
+    setTimeout(() => {
+        if (document.getElementById('mainContent').style.display !== 'none') {
+            renderClips();
+        }
+    }, 2000);
 };
 </script>
 </body>
