@@ -18,8 +18,8 @@
         }
         
         @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.08); opacity: 1; }
         }
         
         @keyframes spin {
@@ -29,27 +29,34 @@
         
         @keyframes glow {
             0%, 100% { text-shadow: 0 0 20px #ff4400, 0 0 40px #ff6600; }
-            50% { text-shadow: 0 0 40px #ff6600, 0 0 60px #ff8800; }
+            50% { text-shadow: 0 0 50px #ff6600, 0 0 70px #ffaa00; }
         }
         
         @keyframes twinkle {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 1; }
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
         
         .star {
             position: absolute;
             background: white;
             border-radius: 50%;
-            animation: twinkle 2s infinite;
+            animation: twinkle 3s infinite;
         }
         
         .clip-card {
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
         }
         
         .clip-card:hover {
             transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(255, 68, 0, 0.3);
         }
         
         button, input, textarea {
@@ -59,6 +66,7 @@
         button:hover {
             opacity: 0.9;
             cursor: pointer;
+            transform: scale(0.98);
         }
         
         .pfp-preview {
@@ -69,13 +77,77 @@
             border: 2px solid #ff6644;
         }
         
-        .profile-pic {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 8px;
-            vertical-align: middle;
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: rgba(20,20,50,0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            border: 1px solid #ff6644;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: white;
+        }
+        
+        .close-modal:hover {
+            color: #ff6644;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 14px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #ff6644;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .search-box button {
+            padding: 14px 25px;
+            background: linear-gradient(90deg, #ff4400, #ff6600);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .clear-search {
+            background: rgba(255,255,255,0.2) !important;
+        }
+        
+        .search-results-count {
+            color: #ff8844;
+            margin-bottom: 15px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -83,23 +155,21 @@
 
 <div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, #0a0a2a 0%, #000000 100%); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 1s;">
     
-    <div style="position: relative; width: 300px; height: 300px; margin-bottom: 50px;">
-        <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle, #000000 0%, #1a0033 40%, #330066 70%, #000000 100%); box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 50px rgba(255,255,255,0.1); animation: pulse 2s infinite;"></div>
-        <div style="position: absolute; width: 80%; height: 80%; top: 10%; left: 10%; border-radius: 50%; background: radial-gradient(circle, #ff6600 0%, #ff3300 50%, #000000 100%); opacity: 0.6; animation: spin 4s linear infinite;"></div>
-        <div style="position: absolute; width: 40%; height: 40%; top: 30%; left: 30%; border-radius: 50%; background: #000; box-shadow: 0 0 30px #ff4400;"></div>
+    <div style="position: relative; width: 380px; height: 380px; margin-bottom: 40px; animation: float 3s ease-in-out infinite;">
+        <canvas id="blackholeCanvas" width="380" height="380" style="width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 0 100px rgba(255, 68, 0, 0.5);"></canvas>
     </div>
     
-    <h1 style="color: white; font-size: 70px; font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: 5px; text-shadow: 0 0 20px #ff4400, 0 0 40px #ff6600; animation: glow 1.5s infinite;">MACCLIPS</h1>
+    <h1 style="color: white; font-size: 80px; font-family: 'Inter', sans-serif; font-weight: 800; letter-spacing: 8px; text-shadow: 0 0 20px #ff4400, 0 0 40px #ff6600, 0 0 60px #ff8800; animation: glow 1.5s infinite;">MACCLIPS</h1>
     
-    <p style="color: #ccc; font-size: 18px; text-align: center; max-width: 600px; margin-top: 20px; padding: 0 20px;">The best website to share clips. Got a sus moment? Share it, got a funny clip? Share it. An international world wide pre-server full website.</p>
+    <p style="color: #ddd; font-size: 18px; text-align: center; max-width: 600px; margin-top: 20px; padding: 0 20px;">The best website to share clips. Got a sus moment? Share it, got a funny clip? Share it. An international world wide pre-server full website.</p>
     
     <div id="starsContainer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
     
-    <div style="width: 280px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 50px; overflow: hidden;">
-        <div id="loadingBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff4400, #ff8800); border-radius: 2px; transition: width 0.1s linear;"></div>
+    <div style="width: 320px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-top: 50px; overflow: hidden;">
+        <div id="loadingBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff4400, #ffaa00, #ff4400); border-radius: 3px; transition: width 0.1s linear;"></div>
     </div>
-    <p id="loadingPercent" style="color: #ff8844; margin-top: 10px; font-family: monospace; font-size: 14px;">0%</p>
-    <p style="color: #666; margin-top: 10px; font-size: 12px;">Loading the universe...</p>
+    <p id="loadingPercent" style="color: #ff8844; margin-top: 10px; font-family: monospace; font-size: 16px; font-weight: bold;">0%</p>
+    <p style="color: #888; margin-top: 10px; font-size: 12px;">Loading the universe...</p>
 </div>
 
 <div id="mainContent" style="display: none;">
@@ -120,8 +190,18 @@
     
     <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, #0a0a2a 0%, #050510 100%); z-index: -2;"></div>
     
+    <canvas id="bgStarsCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;"></canvas>
+    
     <div id="mainpage" class="section" style="max-width: 800px; margin: 40px auto; padding: 20px;">
-        <h2 style="color: white; text-align: center; margin-bottom: 30px;">🔥 Latest Clips</h2>
+        <h2 style="color: white; text-align: center; margin-bottom: 20px;">🔥 Latest Clips</h2>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search clips by title, username, or content..." onkeypress="if(event.key==='Enter') searchClips()">
+            <button onclick="searchClips()">🔍 Search</button>
+            <button onclick="clearSearch()" class="clear-search">🗑️ Clear</button>
+        </div>
+        
+        <div id="searchResultsCount" class="search-results-count"></div>
         <div id="clipsContainer" style="display: flex; flex-direction: column; gap: 20px;"></div>
     </div>
     
@@ -173,17 +253,223 @@
     </div>
 </div>
 
+<div id="clipModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
 <script>
+(function() {
+    const canvas = document.getElementById('blackholeCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = 380;
+    canvas.height = 380;
+    let time = 0;
+    let particles = [];
+    
+    for (let i = 0; i < 450; i++) {
+        particles.push({
+            angle: Math.random() * Math.PI * 2,
+            radius: 85 + Math.random() * 95,
+            speed: 0.005 + Math.random() * 0.02,
+            size: 1.5 + Math.random() * 4.5,
+            color: `hsl(${15 + Math.random() * 45}, 100%, ${55 + Math.random() * 35}%)`,
+            yStretch: 0.5 + Math.random() * 0.4
+        });
+    }
+    
+    function drawBlackHole() {
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        
+        ctx.clearRect(0, 0, w, h);
+        
+        const spaceGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 190);
+        spaceGrad.addColorStop(0, '#020210');
+        spaceGrad.addColorStop(0.5, '#080820');
+        spaceGrad.addColorStop(1, '#000000');
+        ctx.fillStyle = spaceGrad;
+        ctx.fillRect(0, 0, w, h);
+        
+        for (let i = 0; i < 200; i++) {
+            if (!window.bhStars) {
+                window.bhStars = [];
+                for (let s = 0; s < 200; s++) {
+                    window.bhStars.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        size: Math.random() * 1.5,
+                        alpha: 0.2 + Math.random() * 0.6
+                    });
+                }
+            }
+            const star = window.bhStars[i];
+            if (star) {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha * 0.5})`;
+                ctx.fill();
+            }
+        }
+        
+        const glowGrad = ctx.createRadialGradient(cx, cy, 65, cx, cy, 160);
+        glowGrad.addColorStop(0, 'rgba(255, 50, 0, 0)');
+        glowGrad.addColorStop(0.5, 'rgba(255, 70, 0, 0.12)');
+        glowGrad.addColorStop(1, 'rgba(255, 40, 0, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fillRect(0, 0, w, h);
+        
+        for (let p of particles) {
+            const angle = p.angle + time * p.speed;
+            const x = cx + Math.cos(angle) * p.radius;
+            const y = cy + Math.sin(angle) * p.radius * p.yStretch;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, p.size, 0, Math.PI * 2);
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = p.color;
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(x - Math.cos(angle) * 6, y - Math.sin(angle) * 4, p.size * 0.4, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 100, 0, 0.3)`;
+            ctx.fill();
+        }
+        
+        ctx.shadowBlur = 0;
+        
+        for (let i = 0; i < 200; i++) {
+            const ringAng = time * 0.18 + i * 0.07;
+            const rx = cx + Math.cos(ringAng) * 70;
+            const ry = cy + Math.sin(ringAng) * 44;
+            ctx.beginPath();
+            ctx.arc(rx, ry, 1.3 + Math.sin(ringAng * 5) * 0.7, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, ${140 + Math.sin(ringAng) * 60}, 0, 0.9)`;
+            ctx.fill();
+        }
+        
+        const horizon = ctx.createRadialGradient(cx - 7, cy - 7, 0, cx, cy, 58);
+        horizon.addColorStop(0, '#000000');
+        horizon.addColorStop(0.4, '#000000');
+        horizon.addColorStop(0.7, '#0a0200');
+        horizon.addColorStop(1, '#1a0800');
+        ctx.fillStyle = horizon;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 55, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 10; i++) {
+            const lensAng = time * 0.6 + i * Math.PI / 5;
+            const lx = cx + Math.sin(lensAng) * 42;
+            const ly = cy + Math.cos(lensAng * 1.2) * 30;
+            ctx.beginPath();
+            ctx.ellipse(lx, ly, 15, 7, lensAng, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 110, 40, ${0.12 + Math.sin(time + i) * 0.05})`;
+            ctx.fill();
+        }
+        ctx.restore();
+        
+        const photon = ctx.createRadialGradient(cx, cy, 44, cx, cy, 60);
+        photon.addColorStop(0, 'rgba(255, 70, 0, 0)');
+        photon.addColorStop(0.5, 'rgba(255, 100, 0, 0.18)');
+        photon.addColorStop(1, 'rgba(255, 50, 0, 0)');
+        ctx.fillStyle = photon;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+        ctx.fill();
+        
+        const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, 16);
+        core.addColorStop(0, '#ffffff');
+        core.addColorStop(0.2, '#ffaa66');
+        core.addColorStop(0.5, '#ff5500');
+        core.addColorStop(1, 'transparent');
+        ctx.fillStyle = core;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        for (let i = 0; i < 28; i++) {
+            const rayAng = time * 1.5 + i * Math.PI * 2 / 28;
+            const sx = cx + Math.cos(rayAng) * 92;
+            const sy = cy + Math.sin(rayAng) * 62;
+            const ex = cx + Math.cos(rayAng) * 50;
+            const ey = cy + Math.sin(rayAng) * 34;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
+            ctx.strokeStyle = `rgba(255, 130, 50, ${0.1 + Math.sin(time * 4 + i) * 0.08})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        
+        time += 0.028;
+        requestAnimationFrame(drawBlackHole);
+    }
+    
+    drawBlackHole();
+})();
+
+const bgCanvas = document.getElementById('bgStarsCanvas');
+if (bgCanvas) {
+    function resizeBgStars() {
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+    }
+    resizeBgStars();
+    window.addEventListener('resize', resizeBgStars);
+    
+    const bgCtx = bgCanvas.getContext('2d');
+    let bgStars = [];
+    
+    for (let i = 0; i < 500; i++) {
+        bgStars.push({
+            x: Math.random() * bgCanvas.width,
+            y: Math.random() * bgCanvas.height,
+            size: Math.random() * 2.5,
+            alpha: 0.1 + Math.random() * 0.7,
+            twinkleSpeed: 0.5 + Math.random() * 2
+        });
+    }
+    
+    let starTime = 0;
+    function animateBgStars() {
+        if (!bgCtx || !bgCanvas) return;
+        bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+        
+        for (let star of bgStars) {
+            const twinkle = 0.5 + Math.sin(starTime * star.twinkleSpeed) * 0.5;
+            bgCtx.beginPath();
+            bgCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            bgCtx.fillStyle = `rgba(255, 255, 255, ${star.alpha * twinkle * 0.7})`;
+            bgCtx.fill();
+        }
+       
+        starTime += 0.02;
+        requestAnimationFrame(animateBgStars);
+    }
+    
+    animateBgStars();
+}
+
 const starsContainer = document.getElementById('starsContainer');
 if (starsContainer) {
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 300; i++) {
         const star = document.createElement('div');
         star.className = 'star';
         star.style.left = Math.random() * 100 + '%';
         star.style.top = Math.random() * 100 + '%';
-        star.style.width = Math.random() * 2 + 1 + 'px';
+        star.style.width = Math.random() * 3 + 1 + 'px';
         star.style.height = star.style.width;
-        star.style.animationDelay = Math.random() * 3 + 's';
+        star.style.animationDelay = Math.random() * 5 + 's';
+        star.style.animationDuration = 2 + Math.random() * 4 + 's';
         starsContainer.appendChild(star);
     }
 }
@@ -217,6 +503,7 @@ const loadingInterval = setInterval(() => {
 let currentUser = localStorage.getItem('macclips_user') || null;
 let clips = JSON.parse(localStorage.getItem('macclips_clips')) || [];
 let userProfiles = JSON.parse(localStorage.getItem('macclips_profiles')) || {};
+let currentSearchQuery = '';
 
 const bannedNames = ['hitler', 'epstien', 'epstein', 'diddy', 'rape', 'raped', 'rapist', 'nazi', 'adolf', 'pedo', 'pedophile'];
 
@@ -290,22 +577,24 @@ function updateProfile() {
 
 if (clips.length === 0) {
     clips = [
-        {id: Date.now(), username: '🤖 Server Bot', title: 'Welcome to MacClips! 🎉', content: 'Create an account and start posting clips! Share your funny moments, sus clips, and more!', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null},
-        {id: Date.now() + 1, username: '🤖 Server Bot', title: 'How to Post', content: '1. Click Account and Sign Up\n2. Go to Upload\n3. Share your clip!\n4. View on Main Page', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null},
-        {id: Date.now() + 2, username: '🤖 Server Bot', title: 'Customize Your Profile!', content: 'Go to Account → Edit Profile to add your surname and profile picture!', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null}
+        {id: Date.now(), username: '🤖 Server Bot', title: 'Welcome to MacClips! 🎉', content: 'Create an account and start posting clips! Share your funny moments, sus clips, and more! Click on any clip to view it full screen!', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null},
+        {id: Date.now() + 1, username: '🤖 Server Bot', title: 'How to Post', content: '1. Click Account and Sign Up\n2. Go to Upload\n3. Share your clip!\n4. View on Main Page\n\nClick on any clip to see it in detail!', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null},
+        {id: Date.now() + 2, username: '🤖 Server Bot', title: 'Customize Your Profile!', content: 'Go to Account → Edit Profile to add your surname and profile picture! Your profile picture will show on all your clips.', image: null, timestamp: new Date().toISOString(), isBot: true, surname: '', pfp: null}
     ];
     localStorage.setItem('macclips_clips', JSON.stringify(clips));
 }
 
 const botPosts = [
     "🎮 Check out this insane gameplay clip from TikTok! #gaming",
-    "🔥 This YouTube clip is going viral right now!",
+    "🔥 This YouTube clip is going viral right now! Watch before it's gone!",
     "😱 Can't believe what happened in this Twitch stream!",
-    "🎵 Best music moment caught on camera from TikTok!",
-    "🐱 Cute animal clip of the day! 🥰",
-    "🤣 This funny moment will make your day!",
-    "⚡ Epic fail compilation from YouTube!",
-    "💪 Most satisfying clip you'll watch today!"
+    "🎵 Best music moment caught on camera from TikTok! 🎶",
+    "🐱 Cute animal clip of the day! This will make you smile 🥰",
+    "🤣 This funny moment will make your day! I can't stop laughing!",
+    "⚡ Epic fail compilation from YouTube! You won't believe #3!",
+    "💪 Most satisfying clip you'll watch today! Trust me on this one!",
+    "🎬 Movie scene that went viral on TikTok!",
+    "🏆 Pro player highlights - insane skills!"
 ];
 
 function addBotClip() {
@@ -324,10 +613,12 @@ function addBotClip() {
     clips.unshift(newClip);
     if (clips.length > 50) clips = clips.slice(0, 50);
     localStorage.setItem('macclips_clips', JSON.stringify(clips));
-    renderClips();
+    if (document.getElementById('mainpage').style.display !== 'none') {
+        renderClips();
+    }
 }
 
-setInterval(addBotClip, 30000);
+setInterval(addBotClip, 25000);
 
 function signUp() {
     const email = document.getElementById('loginEmail').value;
@@ -417,7 +708,7 @@ function uploadClip() {
             return;
         }
         if (imageFile.size > 5 * 1024 * 1024) {
-                        alert('Image too large! Max 5MB.');
+            alert('Image too large! Max 5MB.');
             return;
         }
         const reader = new FileReader();
@@ -457,6 +748,114 @@ function saveClip(title, content, imageData) {
     renderClips();
 }
 
+function searchClips() {
+    const searchInput = document.getElementById('searchInput');
+    const query = searchInput.value.trim().toLowerCase();
+    currentSearchQuery = query;
+    
+    if (!query) {
+        renderClips();
+        return;
+    }
+    
+    const filteredClips = clips.filter(clip => {
+        return clip.title.toLowerCase().includes(query) ||
+               clip.content.toLowerCase().includes(query) ||
+               clip.username.toLowerCase().includes(query);
+    });
+    
+    const resultsCount = document.getElementById('searchResultsCount');
+    if (resultsCount) {
+        resultsCount.innerHTML = `🔍 Found ${filteredClips.length} result(s) for "${escapeHtml(query)}"`;
+    }
+    
+    renderFilteredClips(filteredClips);
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = '';
+    currentSearchQuery = '';
+    const resultsCount = document.getElementById('searchResultsCount');
+    if (resultsCount) {
+        resultsCount.innerHTML = '';
+    }
+    renderClips();
+}
+
+function renderFilteredClips(filteredClips) {
+    const container = document.getElementById('clipsContainer');
+    if (!container) return;
+    
+    if (filteredClips.length === 0) {
+        container.innerHTML = '<div style="background: rgba(20,20,50,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 40px; text-align: center;"><p style="color: white;">No clips match your search.</p></div>';
+        return;
+    }
+    
+    container.innerHTML = filteredClips.map(clip => {
+        let pfpUrl = '';
+        if (clip.isBot) {
+            pfpUrl = 'https://i.pravatar.cc/150?img=10';
+        } else if (clip.pfp) {
+            pfpUrl = clip.pfp;
+        } else {
+            const defaultId = (clip.username.length % 70) + 1;
+            pfpUrl = `https://i.pravatar.cc/150?img=${defaultId}`;
+        }
+        
+        const displaySurname = clip.surname ? ` @${clip.surname}` : '';
+        
+        return `
+        <div class="clip-card" onclick='openClipModal(${JSON.stringify(clip).replace(/'/g, "&#39;")})' style="background: rgba(20,20,50,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; border-left: 4px solid #ff6644;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                <img src="${pfpUrl}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #ff6644;">
+                <div>
+                    <div style="color: #ff8844; font-weight: bold;">${clip.isBot ? '🤖 ' : ''}${escapeHtml(clip.username)}${displaySurname}</div>
+                    <div style="color: #666; font-size: 11px;">${new Date(clip.timestamp).toLocaleString()}</div>
+                </div>
+            </div>
+            <div style="color: white; font-size: 18px; font-weight: 600; margin: 10px 0;">${escapeHtml(clip.title)}</div>
+            <div style="color: #ccc; margin: 10px 0; white-space: pre-wrap; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHtml(clip.content)}</div>
+            ${clip.image ? `<img src="${clip.image}" style="max-width: 100%; border-radius: 8px; margin-top: 10px; max-height: 200px; object-fit: cover;">` : ''}
+            <div style="color: #ff6644; font-size: 12px; margin-top: 10px; text-align: right;">👆 Click to view full clip</div>
+        </div>
+    `}).join('');
+}
+
+function openClipModal(clip) {
+    const modal = document.getElementById('clipModal');
+    const modalBody = document.getElementById('modalBody');
+    
+    let pfpUrl = '';
+    if (clip.isBot) {
+        pfpUrl = 'https://i.pravatar.cc/150?img=10';
+    } else if (clip.pfp) {
+        pfpUrl = clip.pfp;
+    } else {
+        const defaultId = (clip.username.length % 70) + 1;
+        pfpUrl = `https://i.pravatar.cc/150?img=${defaultId}`;
+    }
+    
+    const displaySurname = clip.surname ? ` @${clip.surname}` : '';
+    
+    modalBody.innerHTML = `
+        <div style="text-align: center;">
+            <img src="${pfpUrl}" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ff6644; margin-bottom: 15px;">
+            <h3 style="color: #ff8844; margin-bottom: 5px;">${escapeHtml(clip.username)}${displaySurname}</h3>
+            <p style="color: #666; font-size: 12px; margin-bottom: 20px;">${new Date(clip.timestamp).toLocaleString()}</p>
+            <h2 style="color: white; margin-bottom: 15px;">${escapeHtml(clip.title)}</h2>
+            <p style="color: #ccc; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(clip.content)}</p>
+            ${clip.image ? `<img src="${clip.image}" style="max-width: 100%; border-radius: 12px; margin-top: 20px; max-height: 400px; object-fit: contain;">` : ''}
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('clipModal').style.display = 'none';
+}
+
 function renderClips() {
     const container = document.getElementById('clipsContainer');
     if (!container) return;
@@ -482,7 +881,7 @@ function renderClips() {
         const displaySurname = clip.surname ? ` @${clip.surname}` : '';
         
         return `
-        <div class="clip-card" style="background: rgba(20,20,50,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; border-left: 4px solid #ff6644;">
+        <div class="clip-card" onclick='openClipModal(${JSON.stringify(clip).replace(/'/g, "&#39;")})' style="background: rgba(20,20,50,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; border-left: 4px solid #ff6644;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
                 <img src="${pfpUrl}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #ff6644;">
                 <div>
@@ -491,8 +890,9 @@ function renderClips() {
                 </div>
             </div>
             <div style="color: white; font-size: 18px; font-weight: 600; margin: 10px 0;">${escapeHtml(clip.title)}</div>
-            <div style="color: #ccc; margin: 10px 0; white-space: pre-wrap;">${escapeHtml(clip.content)}</div>
-            ${clip.image ? `<img src="${clip.image}" style="max-width: 100%; border-radius: 8px; margin-top: 10px; max-height: 400px; object-fit: contain;" alt="Clip image">` : ''}
+            <div style="color: #ccc; margin: 10px 0; white-space: pre-wrap; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHtml(clip.content)}</div>
+            ${clip.image ? `<img src="${clip.image}" style="max-width: 100%; border-radius: 8px; margin-top: 10px; max-height: 200px; object-fit: cover;">` : ''}
+            <div style="color: #ff6644; font-size: 12px; margin-top: 10px; text-align: right;">👆 Click to view full clip</div>
         </div>
     `}).join('');
 }
@@ -514,7 +914,11 @@ function showSection(sectionId) {
         selectedSection.style.display = 'block';
     }
     if (sectionId === 'mainpage') {
-        renderClips();
+        if (currentSearchQuery) {
+            searchClips();
+        } else {
+            renderClips();
+        }
     }
     if (sectionId === 'account' && currentUser) {
         loadUserProfile();
